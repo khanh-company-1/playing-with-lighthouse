@@ -45,7 +45,7 @@ jobs:
           split -l 20 urls.txt batch_
 
           # # Generate JSON array of batch filenames
-          batches=$(printf '%s\n' batch_*.txt | jq -R -s 'split("\n") | map(select(length > 0))')
+          batches=$(find . -name 'batch_*.txt' -print0 | xargs -0 printf '"%s", ' | sed 's/, $//')
           echo "batches=$batches" >> $GITHUB_ENV
           echo "Here: $batches"
 
