@@ -48,7 +48,7 @@ jobs:
             cat $batch | jq -R -s -c 'split("\n") | map(select(length > 0))'
           done | jq -s '.')
 
-          echo "batches=$batches" >> $GITHUB_ENV
+          echo "batches=${batches}" >> $GITHUB_ENV
           echo "$batches"
 
   lighthouse-audit:
