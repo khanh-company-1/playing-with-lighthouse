@@ -1,16 +1,34 @@
 name: Lighthouse CI
+
 on:
-    workflow_dispatch:
+  workflow_dispatch:
 
 jobs:
   lighthouse:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Audit URLs using Lighthouse
-        uses: treosh/lighthouse-ci-action@v12
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          urls: |
-            https://market.axonivy.com
-            https://market.axonivy.com/portal
-          uploadArtifacts: true
+          node-version: 18
+
+      - name: Install Lighthouse
+        run: |
+          npm install -g lighthouse
+
+      - name: Audit URLs using Lighthouse
+        env:
+          REPORT_DIR: "./lighthouse-reports"
+        run: |
+          mkdir -p $REPORT_DIR
+          lighthouse https://market.axonivy.com --output html --output-path $REPORT_DIR/market-axonivy.html
+          lighthouse https://market.axonivy.com/portal --output html --output-path $REPORT_DIR/market-axonivy-portal.html
+
+      - name: Upload Lighthouse Reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: lighthouse-reports
+          path: lighthouse-reports/
