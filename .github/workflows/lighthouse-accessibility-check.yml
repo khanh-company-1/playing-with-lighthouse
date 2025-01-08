@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Fetch Product Data and Generate URLs
         run: |
-          API_URL="https://market.axonivy.com/marketplace-service/api/product?type=all&language=en&size=20&isRESTClient=false"
+          API_URL="https://market.axonivy.com/marketplace-service/api/product?type=all&language=en&size=50&isRESTClient=false"
           BASE_URL="https://market.axonivy.com"
 
           # Fetch API response
@@ -28,7 +28,7 @@ jobs:
       - name: Split URLs into Batches
         id: prepare-batches
         run: |
-          split -l 20 urls.txt batch_
+          split -l 5 urls.txt batch_
           batches=$(for batch in batch_*; do
             batch_urls=$(cat "$batch" | jq -R -s -c 'split("\n") | map(select(length > 0)) | join(",")')
             echo "$batch_urls"
