@@ -36,14 +36,19 @@ jobs:
           done
 
           # Join all lines in urls.txt into a single string, with each URL on a new line
-          URLs=$(cat urls.txt | tr '\n' '\n')  # Ensures newlines are preserved
+          URLs=$(cat urls.txt | tr '\n' ',')  # Ensures newlines are preserved
 
           # Save the URLs to the environment variable for later use
           echo "urls=$URLs" >> $GITHUB_ENV
-
-      - name: Audit URLs using Lighthouse
-        uses: treosh/lighthouse-ci-action@v12
+      - run: mkdir -p ${{ github.workspace }}/tmp/artifacts
+      - name: Lighthouse
+        uses: foo-software/lighthouse-check-action@master
         with:
+          outputDirectory: ${{ github.workspace }}/tmp/artifacts
           urls: ${{ env.urls }}
-          uploadArtifacts: true
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Lighthouse reports
+          path: ${{ github.workspace }}/tmp/artifacts
 
