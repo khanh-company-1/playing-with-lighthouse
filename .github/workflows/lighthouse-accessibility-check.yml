@@ -27,7 +27,7 @@ jobs:
           REPORT_DIR: "./lighthouse-reports"
         run: |
           mkdir -p $REPORT_DIR
-          lighthouse https://market.axonivy.com --output html --output-path $REPORT_DIR/market-axonivy.html --chrome-flags="--headless"
+          lighthouse https://market.axoni.com --output html --output-path $REPORT_DIR/market-axonivy.html --chrome-flags="--headless"
           lighthouse https://market.axonivy.com/portal --output html --output-path $REPORT_DIR/market-axonivy-portal.html --chrome-flags="--headless"
 
       - name: Upload Lighthouse Reports
