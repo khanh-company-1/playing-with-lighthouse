@@ -50,7 +50,7 @@ jobs:
       - name: Generate HTML Summary
         run: |
           # Path to the result.json file from the Lighthouse report
-          RESULT_FILE="${{ github.workspace }}/tmp/artifacts/result.json"
+          RESULTS_FILE="${{ github.workspace }}/tmp/artifacts/results.json"
           
           # Create an empty HTML summary file
           SUMMARY_FILE="${{ github.workspace }}/lighthouse-summary.html"
@@ -59,12 +59,12 @@ jobs:
           echo "<p>This page lists the Lighthouse audit results for various pages. Click on the URLs to see the detailed report.</p>" >> $SUMMARY_FILE
 
           # Read and parse the result.json file
-          jq -r '.[] | "\(.url),\(.scores.performance),\(.localReport)"' $RESULT_FILE | sort -t, -k2,2n | while IFS=, read -r url performance localReport; do
+          jq -r '.[] | "\(.url),\(.scores.performance),\(.localReport)"' $RESULTS_FILE | sort -t, -k2,2n | while IFS=, read -r url performance localReport; do
             echo "<p><a href=\"$localReport\">$url</a> - Performance: $performance</p>" >> $SUMMARY_FILE
           done
 
           # Highlight the worst page
-          WORST_PAGE=$(jq -r 'min_by(.scores.performance) | .url' $RESULT_FILE)
+          WORST_PAGE=$(jq -r 'min_by(.scores.performance) | .url' $RESULTS_FILE)
           echo "<h2>The Worst Performing Page: $WORST_PAGE</h2>" >> $SUMMARY_FILE
 
           echo "</body></html>" >> $SUMMARY_FILE
