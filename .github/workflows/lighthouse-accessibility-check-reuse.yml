@@ -37,6 +37,7 @@ jobs:
 
           # Output the list of URLs as a space-separated string
           echo "urls=$URLs" >> $GITHUB_ENV
+          echo "$URLs"
 
       - name: Audit URLs using Lighthouse
         uses: treosh/lighthouse-ci-action@v12
