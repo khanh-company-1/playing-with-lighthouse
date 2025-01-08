@@ -47,7 +47,7 @@ jobs:
           # # Generate JSON array of batch filenames
           # batches=$(printf '%s\n' batch_*.txt | jq -R -s 'split("\n") | map(select(length > 0))')
           # echo "batches=$batches" >> $GITHUB_ENV
-          # echo "$batches"
+          # echo "Here: $batches"
 
   lighthouse-audit:
     needs: fetch-and-audit
