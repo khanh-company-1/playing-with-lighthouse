@@ -23,7 +23,7 @@ jobs:
 
       - name: Fetch Product Data and Generate URLs
         run: |
-          API_URL="https://market.axonivy.com/marketplace-service/api/product?type=all&language=en&size=20&isRESTClient=false"
+          API_URL="https://market.axonivy.com/marketplace-service/api/product?type=all&language=en&size=2&isRESTClient=false"
           BASE_URL="https://market.axonivy.com"
 
           # Fetch API response
@@ -36,7 +36,7 @@ jobs:
           done
 
           # Join all lines in urls.txt into a single string, with each URL on a new line
-          URLs=$(cat urls.txt | tr '\n' ',')  # Ensures newlines are preserved
+          URLs=$(grep -v '^[[:space:]]*$' urls.txt | tr '\n' ',')
 
           # Save the URLs to the environment variable for later use
           echo "urls=$URLs" >> $GITHUB_ENV
@@ -46,6 +46,31 @@ jobs:
         with:
           outputDirectory: ${{ github.workspace }}/tmp/artifacts
           urls: ${{ env.urls }}
+
+      - name: Generate HTML Summary
+        run: |
+          # Path to the result.json file from the Lighthouse report
+          RESULT_FILE="${{ github.workspace }}/tmp/artifacts/result.json"
+          
+          # Create an empty HTML summary file
+          SUMMARY_FILE="${{ github.workspace }}/lighthouse-summary.html"
+          echo "<html><head><title>Lighthouse Audit Summary</title></head><body>" > $SUMMARY_FILE
+          echo "<h1>Lighthouse Audit Summary</h1>" >> $SUMMARY_FILE
+          echo "<p>This page lists the Lighthouse audit results for various pages. Click on the URLs to see the detailed report.</p>" >> $SUMMARY_FILE
+
+          # Read and parse the result.json file
+          jq -r '.[] | "\(.url),\(.scores.performance),\(.localReport)"' $RESULT_FILE | sort -t, -k2,2n | while IFS=, read -r url performance localReport; do
+            echo "<p><a href=\"$localReport\">$url</a> - Performance: $performance</p>" >> $SUMMARY_FILE
+          done
+
+          # Highlight the worst page
+          WORST_PAGE=$(jq -r 'min_by(.scores.performance) | .url' $RESULT_FILE)
+          echo "<h2>The Worst Performing Page: $WORST_PAGE</h2>" >> $SUMMARY_FILE
+
+          echo "</body></html>" >> $SUMMARY_FILE
+
+          echo "Summary HTML generated at $SUMMARY_FILE"
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
