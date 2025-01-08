@@ -41,6 +41,15 @@ jobs:
       - name: Split URLs into Batches
         id: prepare-batches
         run: |
+          # Check if urls.txt exists and contains data
+          if [ -f urls.txt ]; then
+            echo "urls.txt exists"
+            echo "Contents of urls.txt:"
+            cat urls.txt
+          else
+            echo "urls.txt does not exist!"
+            exit 1
+          fi
           # Split URLs into batches of 20
           split -l 20 urls.txt batch_
           echo "Batches generated: $(ls batch_*.txt | wc -l)"
