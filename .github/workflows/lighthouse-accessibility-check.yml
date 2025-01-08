@@ -44,12 +44,11 @@ jobs:
         id: prepare-batches
         run: |
           split -l 5 urls.txt batch_
-          batches=$(ls batch_* | sed 's|^|\"|; s|$|\",|' | tr -d '\n' | sed 's/,$//')
-
-          echo "batches=[$batches]" >> $GITHUB_ENV
-      - name: Split URLs into Batches
-        run: |
-          echo "${{ env.batches }}"
+          batches=$(for batch in batch_*; do
+            cat $batch | jq -R -s -c 'split("\n") | map(select(length > 0))'
+          done)
+          echo "batches=$batches" >> $GITHUB_ENV
+          echo "$batches"
 
   lighthouse-audit:
     needs: fetch-and-audit
