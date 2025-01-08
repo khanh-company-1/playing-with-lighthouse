@@ -44,55 +44,48 @@ jobs:
           # Split URLs into batches of 20
           split -l 20 urls.txt batch_
 
-          # Rename batch files with numbers
-          counter=1
-          for file in batch_*; do
-            mv "$file" "batch_$counter.txt"
-            counter=$((counter + 1))
-          done
+          # # Generate JSON array of batch filenames
+          # BATCHES=$(printf '%s\n' batch_*.txt | jq -R -s 'split("\n") | map(select(length > 0))')
+          # echo "BATCHES=$BATCHES" >> $GITHUB_ENV
 
-          # Generate JSON array of batch filenames
-          BATCHES=$(printf '%s\n' batch_*.txt | jq -R -s 'split("\n") | map(select(length > 0))')
-          echo "BATCHES=$BATCHES" >> $GITHUB_ENV
+  # lighthouse-audit:
+  #   needs: fetch-and-audit
+  #   strategy:
+  #     matrix:
+  #       batch: ${{ fromJson(needs.fetch-and-audit.outputs.batches) }}
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
 
-  lighthouse-audit:
-    needs: fetch-and-audit
-    strategy:
-      matrix:
-        batch: ${{ fromJson(needs.fetch-and-audit.outputs.batches) }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+  #     - uses: actions/setup-node@v3
+  #       with:
+  #         node-version: 18
 
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
+  #     - name: Install Chrome
+  #       run: |
+  #         sudo apt-get update
+  #         sudo apt-get install -y google-chrome-stable
 
-      - name: Install Chrome
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
+  #     - name: Install Lighthouse
+  #       run: |
+  #         npm install -g lighthouse
 
-      - name: Install Lighthouse
-        run: |
-          npm install -g lighthouse
+  #     - name: Run Lighthouse for Batch
+  #       env:
+  #         REPORT_DIR: "./lighthouse-reports"
+  #       run: |
+  #         mkdir -p $REPORT_DIR
+  #         while read url; do
+  #           if [ "$url" = "https://market.axonivy.com" ]; then
+  #             REPORT_NAME="home"
+  #           else
+  #             REPORT_NAME=$(echo $url | sed 's|https://market.axonivy.com/||; s|/|-|g')
+  #           fi
+  #           lighthouse $url --output html --output-path $REPORT_DIR/$REPORT_NAME.html --chrome-flags="--headless"
+  #         done < ${{ matrix.batch }}
 
-      - name: Run Lighthouse for Batch
-        env:
-          REPORT_DIR: "./lighthouse-reports"
-        run: |
-          mkdir -p $REPORT_DIR
-          while read url; do
-            if [ "$url" = "https://market.axonivy.com" ]; then
-              REPORT_NAME="home"
-            else
-              REPORT_NAME=$(echo $url | sed 's|https://market.axonivy.com/||; s|/|-|g')
-            fi
-            lighthouse $url --output html --output-path $REPORT_DIR/$REPORT_NAME.html --chrome-flags="--headless"
-          done < ${{ matrix.batch }}
-
-      - name: Upload Lighthouse Reports for Batch
-        uses: actions/upload-artifact@v4
-        with:
-          path: lighthouse-reports/
-          name: lighthouse-reports-${{ matrix.batch }}
+  #     - name: Upload Lighthouse Reports for Batch
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         path: lighthouse-reports/
+  #         name: lighthouse-reports-${{ matrix.batch }}
