@@ -45,7 +45,9 @@ jobs:
           batches=$(ls batch_* | sed 's|^|\"|; s|$|\",|' | tr -d '\n' | sed 's/,$//')
 
           echo "batches=[$batches]" >> $GITHUB_ENV
-          echo "Here: $batches"
+      - name: Split URLs into Batches
+        run: |
+          echo "Hello ${{ steps.prepare-batches.outputs.batches }}"
 
   lighthouse-audit:
     needs: fetch-and-audit
