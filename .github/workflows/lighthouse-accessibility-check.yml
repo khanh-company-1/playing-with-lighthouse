@@ -46,7 +46,7 @@ jobs:
           ls -l
           echo "Batches generated: $(ls batch_* | wc -l)"
           # # Generate JSON array of batch filenames
-          batches=$(ls batch_*.txt | sed 's|^|\"|; s|$|\",|' | tr -d '\n' | sed 's/,$//')
+          batches=$(ls batch_* | sed 's|^|\"|; s|$|\",|' | tr -d '\n' | sed 's/,$//')
 
           echo "batches=$batches" >> $GITHUB_ENV
           echo "Here: $batches"
