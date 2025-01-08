@@ -42,7 +42,7 @@ jobs:
         id: prepare-batches
         run: |
           # Split URLs into batches of 20
-          split -l 20 <(echo $URLS) batch_
+          split -l 20 <(echo "$URLS") batch_
 
           # Rename batch files with numbers
           counter=1
@@ -52,7 +52,7 @@ jobs:
           done
 
           # Generate JSON array of batch filenames
-          BATCHES=$(ls batch_* | jq -R -s 'split("\n") | map(select(length > 0))')
+          BATCHES=$(ls batch_* | jq -R -s '[.[] | select(length > 0)]')
           echo "BATCHES=$BATCHES" >> $GITHUB_ENV
 
   lighthouse-audit:
