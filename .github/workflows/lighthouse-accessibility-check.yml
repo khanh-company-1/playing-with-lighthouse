@@ -39,7 +39,7 @@ jobs:
     needs: fetch-and-audit
     strategy:
       matrix:
-        batch: ${{ fromJson(needs.fetch-and-audit.outputs.batches) }}
+        batch: ${{ needs.fetch-and-audit.outputs.batches }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
