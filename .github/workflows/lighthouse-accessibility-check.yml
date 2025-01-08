@@ -46,7 +46,8 @@ jobs:
           split -l 5 urls.txt batch_
           batches=$(for batch in batch_*; do
             cat $batch | jq -R -s -c 'split("\n") | map(select(length > 0))'
-          done)
+          done | jq -s '.')
+
           echo "batches=$batches" >> $GITHUB_ENV
           echo "$batches"
 
