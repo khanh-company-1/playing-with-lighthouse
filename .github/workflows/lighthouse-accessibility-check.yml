@@ -13,6 +13,11 @@ jobs:
         with:
           node-version: 18
 
+      - name: Install Chrome
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+
       - name: Install Lighthouse
         run: |
           npm install -g lighthouse
@@ -22,8 +27,8 @@ jobs:
           REPORT_DIR: "./lighthouse-reports"
         run: |
           mkdir -p $REPORT_DIR
-          lighthouse https://market.axonivy.com --output html --output-path $REPORT_DIR/market-axonivy.html
-          lighthouse https://market.axonivy.com/portal --output html --output-path $REPORT_DIR/market-axonivy-portal.html
+          lighthouse https://market.axonivy.com --output html --output-path $REPORT_DIR/market-axonivy.html --chrome-flags="--headless"
+          lighthouse https://market.axonivy.com/portal --output html --output-path $REPORT_DIR/market-axonivy-portal.html --chrome-flags="--headless"
 
       - name: Upload Lighthouse Reports
         uses: actions/upload-artifact@v3
