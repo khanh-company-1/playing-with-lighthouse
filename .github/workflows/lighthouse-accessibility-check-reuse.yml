@@ -29,16 +29,20 @@ jobs:
           # Fetch API response
           RESPONSE=$(curl -s "$API_URL")
 
-          # Build the list of URLs
-          URLs="$BASE_URL"
+          URLs="$BASE_URL"  # Initialize URLs with the base URL
+          # Loop through the product IDs and generate URLs
+          echo "Generated URLs:" # Debugging line to mark start of URL list
+          echo "$URLs"  # Prints the initial value of URLs (BASE_URL)
+
           echo "$RESPONSE" | jq -r '.["_embedded"]["products"][]["id"]' | while read id; do
-            echo "$URLs"
+            # Append the new URL to the URLs variable
             URLs="$URLs $BASE_URL/$id"
+            echo "$URLs"  # Print the updated URLs in each loop iteration
           done
 
-          # Output the list of URLs as a space-separated string
+          # Save the URLs to the environment variable
           echo "urls=$URLs" >> $GITHUB_ENV
-          echo "$URLs"
+          echo "Final URLs: $URLs"  # Print the final value of URLs after the loop
 
       - name: Audit URLs using Lighthouse
         uses: treosh/lighthouse-ci-action@v12
