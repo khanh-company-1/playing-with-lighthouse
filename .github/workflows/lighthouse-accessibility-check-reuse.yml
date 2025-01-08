@@ -29,20 +29,17 @@ jobs:
           # Fetch API response
           RESPONSE=$(curl -s "$API_URL")
 
+          # Generate the list of URLs and save them to a file
           echo "$BASE_URL" > urls.txt
           echo "$RESPONSE" | jq -r '.["_embedded"]["products"][]["id"]' | while read id; do
             echo "$BASE_URL/$id" >> urls.txt
           done
-          # Join all lines in urls.txt into a single string
-          URLs=$(cat urls.txt)
 
-          # Optionally remove any leading or trailing spaces
-          URLs=$(echo "$URLs" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+          # Join all lines in urls.txt into a single string, with each URL on a new line
+          URLs=$(cat urls.txt | tr '\n' '\n')  # Ensures newlines are preserved
 
-          # Output the final concatenated URLs
-          echo "Final URLs: $URLs"
+          # Save the URLs to the environment variable for later use
           echo "urls=$URLs" >> $GITHUB_ENV
-          
 
       - name: Audit URLs using Lighthouse
         uses: treosh/lighthouse-ci-action@v12
