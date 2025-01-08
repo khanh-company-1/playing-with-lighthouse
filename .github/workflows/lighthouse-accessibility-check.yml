@@ -6,6 +6,8 @@ on:
 jobs:
   fetch-and-audit:
     runs-on: ubuntu-latest
+    outputs:
+      batches: ${{ steps.prepare-batches.outputs.batches }}
     steps:
       - uses: actions/checkout@v4
 
@@ -35,13 +37,14 @@ jobs:
           echo $RESPONSE | jq -r '.["_embedded"]["products"][]["id"]' | while read id; do
             echo "$BASE_URL/$id" >> urls.txt
           done
-  
+
       - name: Split URLs into Batches
         id: prepare-batches
         run: |
-          # Split URLs into batches
+          # Split URLs into batches of 20
           split -l 20 urls.txt batch_
-          BATCHES=$(ls batch_ | tr '\n' ',')
+          BATCHES=$(ls batch_* | jq -R -s 'split("\n")[:-1]')
+          echo "Generated batches: $BATCHES"
           echo "batches=$BATCHES" >> $GITHUB_OUTPUT
 
   lighthouse-audit:
@@ -78,7 +81,7 @@ jobs:
               REPORT_NAME=$(echo $url | sed 's|https://market.axonivy.com/||; s|/|-|g')
             fi
             lighthouse $url --output html --output-path $REPORT_DIR/$REPORT_NAME.html --chrome-flags="--headless"
-          done < batch_${{ matrix.batch }}
+          done < ${{ matrix.batch }}
 
       - name: Upload Lighthouse Reports for Batch
         uses: actions/upload-artifact@v4
