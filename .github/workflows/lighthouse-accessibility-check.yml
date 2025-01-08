@@ -43,13 +43,12 @@ jobs:
           REPORT_DIR: "./lighthouse-reports"
           URLS: ${{ env.URLS }}
         run: |
-          echo "$URLS"
-          # mkdir -p $REPORT_DIR
-          # # Split URLs and run Lighthouse audits
-          # for url in $URLS; do
-          #   REPORT_NAME=$(echo $url | sed 's|https://market.axonivy.com/||; s|/|-|g; s|^$|home|')
-          #   lighthouse $url --output html --output-path $REPORT_DIR/$REPORT_NAME.html --chrome-flags="--headless"
-          # done
+          mkdir -p $REPORT_DIR
+          # Split URLs and run Lighthouse audits
+          for url in $URLS; do
+            REPORT_NAME=$(echo $url | sed 's|https://market.axonivy.com/||; s|/|-|g; s|^$|home|')
+            lighthouse $url --output html --output-path $REPORT_DIR/$REPORT_NAME.html --chrome-flags="--headless"
+          done
 
       - name: Upload Lighthouse Reports
         uses: actions/upload-artifact@v4
