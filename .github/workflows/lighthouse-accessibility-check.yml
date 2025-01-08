@@ -3,11 +3,13 @@ name: Lighthouse CI
 on:
   workflow_dispatch:
 
+env:
+  batches: "[]"
 jobs:
   fetch-and-audit:
     runs-on: ubuntu-latest
     outputs:
-      batches: ${{ steps.prepare-batches.outputs.batches }}
+      batches: ${{ env.batches }}
     steps:
       - uses: actions/checkout@v4
 
@@ -47,7 +49,7 @@ jobs:
           echo "batches=[$batches]" >> $GITHUB_ENV
       - name: Split URLs into Batches
         run: |
-          echo "Hello ${{ steps.prepare-batches.outputs.batches }}"
+          echo "${{ env.batches }}"
 
   lighthouse-audit:
     needs: fetch-and-audit
