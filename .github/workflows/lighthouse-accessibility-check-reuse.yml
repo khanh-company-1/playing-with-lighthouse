@@ -47,6 +47,7 @@ jobs:
       - name: Audit URLs using Lighthouse
         uses: treosh/lighthouse-ci-action@v12
         with:
-          urls: ${{ env.urls }}
+          urls: |
+            ${{ env.urls }}
           uploadArtifacts: true
 
