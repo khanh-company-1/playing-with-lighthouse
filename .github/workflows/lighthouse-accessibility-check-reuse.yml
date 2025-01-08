@@ -36,7 +36,8 @@ jobs:
           done
 
           # Join all lines in urls.txt into a single string, with each URL on a new line
-          URLs=$(urls.txt | tr '\n' ',')
+          URLs=$(cat urls.txt | tr '\n' ',')
+          URLs="${URLs%,}"
           # Save the URLs to the environment variable for later use
           echo "urls=$URLs" >> $GITHUB_ENV
       - run: mkdir -p ${{ github.workspace }}/tmp/artifacts
