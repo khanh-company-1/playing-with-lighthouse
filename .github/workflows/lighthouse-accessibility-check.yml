@@ -62,8 +62,8 @@ jobs:
           REPORT_DIR: "./lighthouse-reports"
         run: |
           mkdir -p $REPORT_DIR
-          echo "Running Lighthouse for batch: ${{ matrix.batch }}"
-          for url in "${{ matrix.batch }}"; do
+          echo "Running Lighthouse for batch: ${{ fromJson(matrix.batch) }}"
+          for url in "${{ fromJson(matrix.batch) }}"; do
             echo "Running Lighthouse for $url"
             if [ "$url" = "https://market.axonivy.com" ]; then
               REPORT_NAME="home"
