@@ -38,7 +38,6 @@ jobs:
             echo "$BASE_URL/$id" >> urls.txt
           done
 
-
       - name: Split URLs into Batches
         id: prepare-batches
         run: |
