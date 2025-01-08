@@ -29,17 +29,18 @@ jobs:
           # Fetch API response
           RESPONSE=$(curl -s "$API_URL")
 
-          URLs="$BASE_URL"  # Initialize URLs with the base URL
-          # Loop through the product IDs and generate URLs
-          echo "Generated URLs:" # Debugging line to mark start of URL list
-          echo "$URLs"  # Prints the initial value of URLs (BASE_URL)
-
+          echo "$BASE_URL" > urls.txt
           echo "$RESPONSE" | jq -r '.["_embedded"]["products"][]["id"]' | while read id; do
-            # Append the new URL to the URLs variable
-            URLs="$URLs $BASE_URL/$id"
+            echo "$BASE_URL/$id" >> urls.txt
           done
-          echo "Final URLs: $URLs"  # Print the final value of URLs after the loop
-          # Save the URLs to the environment variable
+          # Join all lines in urls.txt into a single string
+          URLs=$(cat urls.txt | tr '\n' ' ')  # Replace newlines with spaces
+
+          # Optionally remove any leading or trailing spaces
+          URLs=$(echo "$URLs" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+
+          # Output the final concatenated URLs
+          echo "Final URLs: $URLs"
           echo "urls=$URLs" >> $GITHUB_ENV
           
 
