@@ -22,13 +22,33 @@ jobs:
         run: |
           npm install -g lighthouse
 
+      - name: Fetch Product Data and Generate URLs
+        id: fetch-products
+        run: |
+          API_URL="https://market.axonivy.com/marketplace-service/api/product?type=all&sort=standard&keyword=&language=en&page=0&size=20&isRESTClient=false"
+          BASE_URL="https://market.axonivy.com"
+
+          # Fetch API response
+          RESPONSE=$(curl -s $API_URL)
+          
+          # Build the list of URLs
+          URLS="$BASE_URL $(echo $RESPONSE | jq -r '.["_embedded"]["products"][]["id"]' | while read id; do
+            echo "$BASE_URL/$id"
+          done | tr '\n' ' ')"
+
+          echo "URLS=$URLS" >> $GITHUB_ENV
+
       - name: Audit URLs using Lighthouse
         env:
           REPORT_DIR: "./lighthouse-reports"
+          URLS: ${{ env.URLS }}
         run: |
           mkdir -p $REPORT_DIR
-          lighthouse https://market.axoni.com --output html --output-path $REPORT_DIR/market-axonivy.html --chrome-flags="--headless"
-          lighthouse https://market.axonivy.com/portal --output html --output-path $REPORT_DIR/market-axonivy-portal.html --chrome-flags="--headless"
+          # Split URLs and run Lighthouse audits
+          for url in $URLS; do
+            REPORT_NAME=$(echo $url | sed 's|https://market.axonivy.com/||; s|/|-|g; s|^$|home|')
+            lighthouse $url --output html --output-path $REPORT_DIR/$REPORT_NAME.html --chrome-flags="--headless"
+          done
 
       - name: Upload Lighthouse Reports
         uses: actions/upload-artifact@v4
