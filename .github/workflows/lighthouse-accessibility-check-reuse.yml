@@ -34,7 +34,7 @@ jobs:
             echo "$BASE_URL/$id" >> urls.txt
           done
           # Join all lines in urls.txt into a single string
-          URLs=$(cat urls.txt | tr '\n' ' ')  # Replace newlines with spaces
+          URLs=$(cat urls.txt)
 
           # Optionally remove any leading or trailing spaces
           URLs=$(echo "$URLs" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
@@ -47,7 +47,6 @@ jobs:
       - name: Audit URLs using Lighthouse
         uses: treosh/lighthouse-ci-action@v12
         with:
-          urls: |
-            ${{ env.urls }}
+          urls: ${{ env.urls }}
           uploadArtifacts: true
 
