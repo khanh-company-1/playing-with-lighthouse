@@ -23,7 +23,6 @@ jobs:
           npm install -g lighthouse
 
       - name: Fetch Product Data and Generate URLs
-        id: fetch-products
         run: |
           API_URL="https://market.axonivy.com/marketplace-service/api/product?type=all&language=en&size=1000&isRESTClient=false"
           BASE_URL="https://market.axonivy.com"
@@ -36,20 +35,20 @@ jobs:
           echo $RESPONSE | jq -r '.["_embedded"]["products"][]["id"]' | while read id; do
             echo "$BASE_URL/$id" >> urls.txt
           done
-
+  
       - name: Split URLs into Batches
-        id: split-urls
+        id: prepare-batches
         run: |
+          # Split URLs into batches
           split -l 20 urls.txt batch_
-          echo "BATCHES=$(ls batch_ | tr '\n' ',')" >> $GITHUB_ENV
-        env:
-          BATCH_SIZE: 20
+          BATCHES=$(ls batch_ | tr '\n' ',')
+          echo "batches=$BATCHES" >> $GITHUB_OUTPUT
 
   lighthouse-audit:
     needs: fetch-and-audit
     strategy:
       matrix:
-        batch: ${{ fromJson(env.BATCHES) }}
+        batch: ${{ fromJson(needs.fetch-and-audit.outputs.batches) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
