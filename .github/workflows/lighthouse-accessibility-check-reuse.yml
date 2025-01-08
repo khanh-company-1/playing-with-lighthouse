@@ -1,0 +1,46 @@
+name: Lighthouse Reuse CI
+
+on:
+  workflow_dispatch:
+env:
+  urls: ""
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Chrome
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+
+      - name: Install Lighthouse
+        run: |
+          npm install -g lighthouse
+
+      - name: Fetch Product Data and Generate URLs
+        run: |
+          API_URL="https://market.axonivy.com/marketplace-service/api/product?type=all&language=en&size=20&isRESTClient=false"
+          BASE_URL="https://market.axonivy.com"
+
+          # Fetch API response
+          RESPONSE=$(curl -s "$API_URL")
+
+          # Build the list of URLs
+          URLs="$BASE_URL"
+          echo "$RESPONSE" | jq -r '.["_embedded"]["products"][]["id"]' | while read id; do
+            URLs="$URLs $BASE_URL/$id"
+          done
+
+          # Output the list of URLs as a space-separated string
+          echo "urls=$URLs" >> $GITHUB_ENV
+
+      - name: Audit URLs using Lighthouse
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          urls: ${{ env.urls }}
+          uploadArtifacts: true
+
