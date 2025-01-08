@@ -32,7 +32,7 @@ jobs:
           # Build the list of URLs
           URLs="$BASE_URL"
           echo "$RESPONSE" | jq -r '.["_embedded"]["products"][]["id"]' | while read id; do
-            echo "Processing product with ID: $id"
+            echo "$URLs"
             URLs="$URLs $BASE_URL/$id"
           done
 
