@@ -23,7 +23,7 @@ jobs:
 
       - name: Fetch Product Data and Generate URLs
         run: |
-          API_URL="https://market.axonivy.com/marketplace-service/api/product?type=all&language=en&size=2&isRESTClient=false"
+          API_URL="https://market.axonivy.com/marketplace-service/api/product?type=all&language=en&size=1000&isRESTClient=false"
           BASE_URL="https://market.axonivy.com"
 
           # Fetch API response
