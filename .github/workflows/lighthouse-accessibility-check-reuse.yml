@@ -11,30 +11,27 @@ env:
 jobs:
   fetch-urls:
     runs-on: ubuntu-latest
-    outputs:
-      urls_batches: ${{ steps.fetch-url-batches.outputs.urls_batches }}
     steps:
       - name: Fetch Product IDs in Batches
-        id: fetch-url-batches
         run: |
           RESPONSE=$(curl -s "$API_URL&size=1000")
           TOTAL_PRODUCTS=$(echo "$RESPONSE" | jq -r '.page.totalElements')
 
           echo "Total Products: $TOTAL_PRODUCTS"
 
-          URL_BATCHES=""
+          > urls_batches.txt
           for ((i=0; i<TOTAL_PRODUCTS; i+=$BATCH_SIZE)); do
             RESPONSE=$(curl -s "$API_URL&size=$BATCH_SIZE&page=$((i/$BATCH_SIZE))")
-            echo "$RESPONSE" | jq -r '.["_embedded"]["products"][]["id"]' | while read id; do
-              URL="${BASE_URL}/${id}"
-              URL_BATCHES+="${URL},"
+            BATCH_URLS=$(echo "$RESPONSE" | jq -r --arg base_url "$BASE_URL" '.["_embedded"]["products"][]["id"] | "\($base_url)/\(.)"' | paste -sd",")            echo "$BATCH_URLS" >> urls_batches.txt
+            echo "$BATCH_URLS" >> urls_batches.txt
             done
-          done
 
-          # Remove trailing comma
-          URL_BATCHES=${URL_BATCHES%,}
-          echo "URL Batches: $URL_BATCHES"
-          echo "urls_batches=$URL_BATCHES" >> $GITHUB_OUTPUT
+      - name: Process URL Batches
+        id: process-urls
+        run: |
+          URLs=$(cat urls_batches.txt | jq -R -s -c 'split("\n") | map(select(. != ""))')
+          echo "URLs: $URLs"
+          echo "::set-output name=batches::$URLs"
 
   lighthouse:
     needs: fetch-urls
