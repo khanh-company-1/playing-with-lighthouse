@@ -19,12 +19,13 @@ jobs:
 
           echo "Total Products: $TOTAL_PRODUCTS"
 
+          # Clear the file before starting
           > urls_batches.txt
           for ((i=0; i<TOTAL_PRODUCTS; i+=$BATCH_SIZE)); do
             RESPONSE=$(curl -s "$API_URL&size=$BATCH_SIZE&page=$((i/$BATCH_SIZE))")
-            BATCH_URLS=$(echo "$RESPONSE" | jq -r --arg base_url "$BASE_URL" '.["_embedded"]["products"][]["id"] | "\($base_url)/\(.)"' | paste -sd",")            echo "$BATCH_URLS" >> urls_batches.txt
+            BATCH_URLS=$(echo "$RESPONSE" | jq -r --arg base_url "$BASE_URL" '.["_embedded"]["products"][]["id"] | "\($base_url)/\(.)"' | paste -sd",")
             echo "$BATCH_URLS" >> urls_batches.txt
-            done
+          done
 
       - name: Process URL Batches
         id: process-urls
