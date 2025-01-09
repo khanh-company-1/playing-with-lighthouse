@@ -25,9 +25,14 @@ jobs:
           URL_BATCHES=""
           for ((i=0; i<TOTAL_PRODUCTS; i+=$BATCH_SIZE)); do
             RESPONSE=$(curl -s "$API_URL&size=$BATCH_SIZE&page=$((i/$BATCH_SIZE))")
-            BATCH_URLS=$(echo "$RESPONSE" | jq -r '.[_embedded].products[] | env.BASE_URL + "/" + .id' | paste -sd",")
-            URL_BATCHES="${URL_BATCHES}${BATCH_URLS} "
+            echo "$RESPONSE" | jq -r '.["_embedded"]["products"][]["id"]' | while read id; do
+              URL="${BASE_URL}/${id}"
+              URL_BATCHES+="${URL},"
+            done
           done
+
+          # Remove trailing comma
+          URL_BATCHES=${URL_BATCHES%,}
 
           echo "urls_batches=$URL_BATCHES" >> $GITHUB_ENV
           echo "::set-output name=urls_batches::$URL_BATCHES"
