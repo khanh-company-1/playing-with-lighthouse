@@ -153,12 +153,12 @@ jobs:
             reportFile=$(basename "$localReport")
 
             echo "<tr>
-              <td><a href=\"$reportFile\" class=\"text-decoration-none\">$url</a></td>
+              <td><a href=\"$url\" class=\"text-decoration-none\">$url</a></td>
               <td class=\"numeric\">$performance</td>
               <td class=\"numeric\">$accessibility</td>
               <td class=\"numeric\">$bestPractices</td>
               <td class=\"numeric\">$seo</td>
-              <td><a href=\"$reportFile\">View Report</a></td>
+              <td class=\"numeric\"><a href=\"$reportFile\">View Report</a></td>
             </tr>" >> $SUMMARY_FILE
           done
 
