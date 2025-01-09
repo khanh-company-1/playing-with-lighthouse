@@ -76,11 +76,15 @@ jobs:
                 // Update pagination controls
                 const pagination = document.getElementById('pagination');
                 pagination.innerHTML = '';
-                for (let i = 1; i <= totalPages; i++) {
-                  const isActive = i === currentPage ? 'active' : '';
-                  pagination.innerHTML += '<li class=\"page-item ' + isActive + '\">' +
-                    '<a class=\"page-link\" href=\"#\" onclick=\"goToPage(' + i + '); return false;\">' + i + '</a>' +
-                    '</li>';
+                if (totalPages > 1) {
+                  for (let i = 1; i <= totalPages; i++) {
+                    const isActive = i === currentPage ? 'active' : '';
+                    pagination.innerHTML += '<li class=\"page-item ' + isActive + '\">' +
+                      '<a class=\"page-link\" href=\"#\" onclick=\"goToPage(' + i + '); return false;\">' + i + '</a>' +
+                      '</li>';
+                  }
+                } else {
+                  pagination.style.display = 'none';
                 }
               }
 
@@ -117,29 +121,27 @@ jobs:
               document.addEventListener('DOMContentLoaded', () => paginateTable());
             </script>
             <style>
-              th { cursor: pointer; }
+              th { cursor: pointer; text-align: center; vertical-align: middle; }
               th:not([data-sortable=\"false\"]):hover { background-color: #f8f9fa; }
               tr:hover { background-color: #f1f1f1; }
-              .pagination { justify-content: center; }
+              td, th { vertical-align: middle; }
+              .pagination { justify-content: center; margin-top: 1rem; }
+              .table-hover tbody tr:hover td { background-color: #e9ecef; }
+              .numeric { text-align: center; }
             </style>
           </head>
           <body class=\"bg-light\">
-            <nav class=\"navbar navbar-expand-lg navbar-light bg-light shadow-sm\">
-              <div class=\"container-fluid\">
-                <a class=\"navbar-brand\" href=\"#\">Lighthouse Audit</a>
-              </div>
-            </nav>
             <div class=\"container mt-4\">
               <h1 class=\"text-center\">Lighthouse Audit Summary</h1>
               <p class=\"text-center\">Click on column headers to sort. Navigate through pages using the pagination controls below.</p>
-              <table class=\"table table-hover\" id=\"auditTable\" data-sort-order=\"asc\">
+              <table class=\"table table-hover border rounded\" id=\"auditTable\" data-sort-order=\"asc\">
                 <thead class=\"table-light\">
                   <tr>
                     <th onclick=\"sortTable(0)\" data-column=\"0\">URL <i class=\"bi\"></i></th>
-                    <th onclick=\"sortTable(1)\" data-column=\"1\">Performance <i class=\"bi\"></i></th>
-                    <th onclick=\"sortTable(2)\" data-column=\"2\">Accessibility <i class=\"bi\"></i></th>
-                    <th onclick=\"sortTable(3)\" data-column=\"3\">Best Practices <i class=\"bi\"></i></th>
-                    <th onclick=\"sortTable(4)\" data-column=\"4\">SEO <i class=\"bi\"></i></th>
+                    <th onclick=\"sortTable(1)\" data-column=\"1\" class=\"numeric\">Performance <i class=\"bi\"></i></th>
+                    <th onclick=\"sortTable(2)\" data-column=\"2\" class=\"numeric\">Accessibility <i class=\"bi\"></i></th>
+                    <th onclick=\"sortTable(3)\" data-column=\"3\" class=\"numeric\">Best Practices <i class=\"bi\"></i></th>
+                    <th onclick=\"sortTable(4)\" data-column=\"4\" class=\"numeric\">SEO <i class=\"bi\"></i></th>
                     <th data-sortable=\"false\">Report</th>
                   </tr>
                 </thead>
@@ -152,11 +154,11 @@ jobs:
 
             echo "<tr>
               <td><a href=\"$reportFile\" class=\"text-decoration-none\">$url</a></td>
-              <td>$performance</td>
-              <td>$accessibility</td>
-              <td>$bestPractices</td>
-              <td>$seo</td>
-              <td><a href=\"$reportFile\" class=\"btn btn-sm btn-primary\">View Report</a></td>
+              <td class=\"numeric\">$performance</td>
+              <td class=\"numeric\">$accessibility</td>
+              <td class=\"numeric\">$bestPractices</td>
+              <td class=\"numeric\">$seo</td>
+              <td><a href=\"$reportFile\">View Report</a></td>
             </tr>" >> $SUMMARY_FILE
           done
 
