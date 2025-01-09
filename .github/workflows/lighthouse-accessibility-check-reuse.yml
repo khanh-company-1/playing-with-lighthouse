@@ -34,7 +34,7 @@ jobs:
         run: |
           URLs=$(cat urls_batches.txt | jq -R -s -c 'split("\n") | map(select(. != ""))')
           echo "URLs: $URLs"
-          echo "urls_batches=$URLs" >> $GITHUB_OUTPUT
+          echo "urls_batches=${URLs}" >> "$GITHUB_OUTPUT"""
 
   lighthouse:
     needs: fetch-urls
