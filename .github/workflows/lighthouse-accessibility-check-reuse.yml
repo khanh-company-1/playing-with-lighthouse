@@ -59,7 +59,7 @@ jobs:
             <title>Lighthouse Audit Summary</title>
             <link href=\"https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css\" rel=\"stylesheet\">
             <script>
-              const rowsPerPage = 5; // Number of rows per page
+              const rowsPerPage = 10;
               let currentPage = 1;
 
               function paginateTable() {
@@ -77,9 +77,10 @@ jobs:
                 const pagination = document.getElementById('pagination');
                 pagination.innerHTML = '';
                 for (let i = 1; i <= totalPages; i++) {
-                  pagination.innerHTML += \`<li class="page-item \${i === currentPage ? 'active' : ''}">
-                    <a class="page-link" href="#" onclick="goToPage(\${i}); return false;">\${i}</a>
-                  </li>\`;
+                  const isActive = i === currentPage ? 'active' : '';
+                  pagination.innerHTML += '<li class=\"page-item ' + isActive + '\">' +
+                    '<a class=\"page-link\" href=\"#\" onclick=\"goToPage(' + i + '); return false;\">' + i + '</a>' +
+                    '</li>';
                 }
               }
 
@@ -107,7 +108,7 @@ jobs:
                 // Update arrows
                 document.querySelectorAll('th i').forEach(icon => icon.classList.remove('bi-caret-up-fill', 'bi-caret-down-fill'));
                 const arrow = isAscending ? 'bi-caret-up-fill' : 'bi-caret-down-fill';
-                document.querySelector(`th[data-column="\${columnIndex}"] i`).classList.add(arrow);
+                document.querySelector('th[data-column=\"' + columnIndex + '\"] i').classList.add(arrow);
 
                 // Reapply pagination after sorting
                 paginateTable();
@@ -117,7 +118,7 @@ jobs:
             </script>
             <style>
               th { cursor: pointer; }
-              th:not([data-sortable="false"]):hover { background-color: #f8f9fa; }
+              th:not([data-sortable=\"false\"]):hover { background-color: #f8f9fa; }
               tr:hover { background-color: #f1f1f1; }
               .pagination { justify-content: center; }
             </style>
