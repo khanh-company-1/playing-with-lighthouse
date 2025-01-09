@@ -53,6 +53,7 @@ jobs:
           RESULTS_FILE="${{ github.workspace }}/tmp/artifacts/results.json"
           
           # Create an empty HTML summary file
+          SUMMARY_FILE="${{ github.workspace }}/tmp/artifacts/lighthouse-summary.html"
           echo "<html>
           <head>
             <title>Lighthouse Audit Summary</title>
