@@ -53,21 +53,72 @@ jobs:
           RESULTS_FILE="${{ github.workspace }}/tmp/artifacts/results.json"
           
           # Create an empty HTML summary file
-          SUMMARY_FILE="${{ github.workspace }}/tmp/artifacts/lighthouse-summary.html"
-          echo "<html><head><title>Lighthouse Audit Summary</title></head><body>" > $SUMMARY_FILE
-          echo "<h1>Lighthouse Audit Summary</h1>" >> $SUMMARY_FILE
-          echo "<p>This page lists the Lighthouse audit results for various pages. Click on the URLs to see the detailed report.</p>" >> $SUMMARY_FILE
+          echo "<html>
+          <head>
+            <title>Lighthouse Audit Summary</title>
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; }
+              h1, h2 { color: #333; }
+              table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+              table, th, td { border: 1px solid #ddd; }
+              th, td { padding: 10px; text-align: left; cursor: pointer; }
+              th { background-color: #f4f4f4; }
+              tr:nth-child(even) { background-color: #f9f9f9; }
+            </style>
+            <script>
+              function sortTable(columnIndex) {
+                const table = document.getElementById('auditTable');
+                const rows = Array.from(table.rows).slice(1);
+                const isAscending = table.dataset.sortOrder === 'asc';
+                
+                rows.sort((a, b) => {
+                  const cellA = a.cells[columnIndex].innerText;
+                  const cellB = b.cells[columnIndex].innerText;
+                  return isAscending
+                    ? cellA.localeCompare(cellB, undefined, { numeric: true })
+                    : cellB.localeCompare(cellA, undefined, { numeric: true });
+                });
 
-          # Read and parse the result.json file
-          jq -r '.[] | "\(.url),\(.scores.performance),\(.localReport)"' $RESULTS_FILE | sort -t, -k2,2n | while IFS=, read -r url performance localReport; do
-            echo "<p><a href=\"$localReport\">$url</a> - Performance: $performance</p>" >> $SUMMARY_FILE
+                table.dataset.sortOrder = isAscending ? 'desc' : 'asc';
+                rows.forEach(row => table.appendChild(row));
+              }
+            </script>
+          </head>
+          <body>
+          <h1>Lighthouse Audit Summary</h1>
+          <p>This page lists the Lighthouse audit results for various pages. Click on the column headers to sort.</p>
+          <table id=\"auditTable\" data-sort-order=\"asc\">
+            <thead>
+              <tr>
+                <th onclick=\"sortTable(0)\">URL</th>
+                <th onclick=\"sortTable(1)\">Performance</th>
+                <th onclick=\"sortTable(2)\">Accessibility</th>
+                <th onclick=\"sortTable(3)\">Best Practices</th>
+                <th onclick=\"sortTable(4)\">SEO</th>
+                <th>Report</th>
+              </tr>
+            </thead>
+            <tbody>
+          " > $SUMMARY_FILE
+
+          # Read and parse the JSON file, sorting URLs alphabetically
+          jq -r '.[] | "\(.url),\(.scores.performance),\(.scores.accessibility),\(.scores.bestPractices),\(.scores.seo),\(.localReport)"' $RESULTS_FILE | sort -t, -k1,1 | while IFS=, read -r url performance accessibility bestPractices seo localReport; do
+            reportFile=$(basename "$localReport")
+
+            echo "<tr>
+              <td><a href=\"$reportFile\">$url</a></td>
+              <td>$performance</td>
+              <td>$accessibility</td>
+              <td>$bestPractices</td>
+              <td>$seo</td>
+              <td><a href=\"$reportFile\">View Report</a></td>
+            </tr>" >> $SUMMARY_FILE
           done
 
-          # Highlight the worst page
-          WORST_PAGE=$(jq -r 'min_by(.scores.performance) | .url' $RESULTS_FILE)
-          echo "<h2>The Worst Performing Page: $WORST_PAGE</h2>" >> $SUMMARY_FILE
-
-          echo "</body></html>" >> $SUMMARY_FILE
+          echo "</tbody>
+          </table>
+          </body>
+          </html>" >> $SUMMARY_FILE
 
           echo "Summary HTML generated at $SUMMARY_FILE"
 
