@@ -11,6 +11,8 @@ env:
 jobs:
   fetch-urls:
     runs-on: ubuntu-latest
+    outputs:
+      urls_batches: ${{ steps.process-urls.outputs.batches }}
     steps:
       - name: Fetch Product IDs in Batches
         run: |
@@ -30,10 +32,8 @@ jobs:
       - name: Process URL Batches
         id: process-urls
         run: |
-          cat urls_batches.txt
           URLs=$(cat urls_batches.txt | jq -R -s -c 'split("\n") | map(select(. != ""))')
-          echo "URLs: $URLs"
-          echo "::set-output name=batches::$URLs"
+          echo "urls_batches=${URLs}" >> $GITHUB_OUTPUT
 
   lighthouse:
     needs: fetch-urls
