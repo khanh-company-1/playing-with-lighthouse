@@ -33,7 +33,7 @@ jobs:
 
           # Remove trailing comma
           URL_BATCHES=${URL_BATCHES%,}
-
+          echo "URL Batches: $URL_BATCHES"
           echo "urls_batches=$URL_BATCHES" >> $GITHUB_OUTPUT
 
   lighthouse:
