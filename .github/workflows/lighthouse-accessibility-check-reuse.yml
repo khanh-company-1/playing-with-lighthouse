@@ -43,7 +43,7 @@ jobs:
       matrix:
         batch: ${{ fromJson(needs.fetch-urls.outputs.urls_batches) }}
     steps:
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: 18
 
@@ -59,7 +59,7 @@ jobs:
       - name: Run Lighthouse Audit
         run: |
           mkdir -p ${{ github.workspace }}/tmp/artifacts
-          lighthouse --urls ${{ matrix.batch }} --output json --output-path ${{ github.workspace }}/tmp/artifacts/results-${{ matrix.batch }}.json
+          lighthouse --urls ${{ matrix.batch }} --output json --output-path ${{ github.workspace }}/tmp/artifacts/results-${{ strategy.job-index }}.json
 
       - name: Upload Batch Results
         uses: actions/upload-artifact@v4
