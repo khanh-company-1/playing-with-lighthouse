@@ -43,48 +43,37 @@ jobs:
       matrix:
         batch: ${{ fromJson(needs.fetch-urls.outputs.urls_batches) }}
     steps:
-      - uses: actions/setup-node@v4
+      - run: mkdir -p ${{ github.workspace }}/artifacts
+      - name: Lighthouse
+        uses: foo-software/lighthouse-check-action@v12.0.1
         with:
-          node-version: 18
+          outputDirectory: ${{ github.workspace }}/artifacts
+          urls: ${{ matrix.batch }}
 
-      - name: Install Chrome
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
-
-      - name: Install Lighthouse
-        run: |
-          npm install -g lighthouse
-
-      - name: Run Lighthouse Audit
-        run: |
-          mkdir -p ${{ github.workspace }}/tmp/artifacts
-          lighthouse --urls ${{ matrix.batch }} --output json --output-path ${{ github.workspace }}/tmp/artifacts/results-${{ strategy.job-index }}.json
-
-      - name: Upload Batch Results
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: lighthouse-results-${{ strategy.job-index }}
-          path: ${{ github.workspace }}/tmp/artifacts/results-${{ strategy.job-index }}.json
+          path: ${{ github.workspace }}/artifacts
 
-  generate-summary:
-    needs: lighthouse
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download Batch Results
-        uses: actions/download-artifact@v4
-        with:
-          name: urls_batches
+  # generate-summary:
+  #   needs: lighthouse
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Download Batch Results
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: urls_batches
 
-      - name: Generate Lighthouse Summary
-        run: |
-          SUMMARY_FILE="${{ github.workspace }}/tmp/artifacts/lighthouse-summary.html"
-          mkdir -p $(dirname "$SUMMARY_FILE")
+  #     - name: Generate Lighthouse Summary
+  #       run: |
+  #         SUMMARY_FILE="${{ github.workspace }}/tmp/artifacts/lighthouse-summary.html"
+  #         mkdir -p $(dirname "$SUMMARY_FILE")
 
-          echo "<html><head><title>Lighthouse Summary</title></head><body><h1>Audit Summary</h1><table><tr><th>URL</th><th>Performance</th><th>Accessibility</th><th>Best Practices</th><th>SEO</th><th>Report</th></tr>" > $SUMMARY_FILE
+  #         echo "<html><head><title>Lighthouse Summary</title></head><body><h1>Audit Summary</h1><table><tr><th>URL</th><th>Performance</th><th>Accessibility</th><th>Best Practices</th><th>SEO</th><th>Report</th></tr>" > $SUMMARY_FILE
 
-          for FILE in ${{ github.workspace }}/tmp/artifacts/results-*.json; do
-            jq -r '.[] | "<tr><td>\(.url)</td><td>\(.scores.performance)</td><td>\(.scores.accessibility)</td><td>\(.scores.bestPractices)</td><td>\(.scores.seo)</td><td><a href=\(.localReport)>Report</a></td></tr>"' "$FILE" >> $SUMMARY_FILE
-          done
+  #         for FILE in ${{ github.workspace }}/tmp/artifacts/results-*.json; do
+  #           jq -r '.[] | "<tr><td>\(.url)</td><td>\(.scores.performance)</td><td>\(.scores.accessibility)</td><td>\(.scores.bestPractices)</td><td>\(.scores.seo)</td><td><a href=\(.localReport)>Report</a></td></tr>"' "$FILE" >> $SUMMARY_FILE
+  #         done
 
-          echo "</table></body></html>" >> $SUMMARY_FILE
+  #         echo "</table></body></html>" >> $SUMMARY_FILE
