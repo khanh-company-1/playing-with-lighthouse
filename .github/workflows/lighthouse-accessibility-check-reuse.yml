@@ -22,8 +22,7 @@ jobs:
 
           while true; do
             RESPONSE=$(curl -s "$API_URL&size=$BATCH_SIZE&page=$PAGE&sort=alphabetically")
-            echo "$RESPONSE" | jq -r '._embedded.products[].id'
-            PRODUCTS=$(echo "$RESPONSE" | jq -r '._embedded.products[].id')
+            PRODUCTS=$(echo "$RESPONSE" | jq -r '._embedded.products[].id // empty')
 
             if [ -z "$PRODUCTS" ]; then
               echo "No more products found. Stopping."
@@ -31,6 +30,7 @@ jobs:
             fi
 
             BATCH_URLS=$(echo "$PRODUCTS" | jq -r --arg base_url "$BASE_URL" 'map("\($base_url)/\(.)") | join(",")')
+            echo "Fetched batch for page $BATCH_URLS"
             URLS_BATCHES=$(echo "$URLS_BATCHES" | jq --arg batch "$BATCH_URLS" '. + [$batch]')
 
             echo "Fetched batch for page $PAGE"
