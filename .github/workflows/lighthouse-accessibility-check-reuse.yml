@@ -33,8 +33,8 @@ jobs:
             URLS_BATCHES=$(echo "$URLS_BATCHES" | jq --arg batch "$BATCH_URLS" '. + [$batch]')
             PAGE=$((PAGE + 1))
           done
-          URLS_BATCHES=$(echo "$URLS_BATCHES" | jq -c 'map(fromjson)')
           URLS_BATCHES=$(echo "$URLS_BATCHES" | jq --arg base_url "$BASE_URL" '. + [$base_url]')
+          URLS_BATCHES=$(echo "$URLS_BATCHES" | jq -c 'map(fromjson)')
           echo "urls_batches=$URLS_BATCHES" >> "$GITHUB_OUTPUT"
 
   lighthouse:
