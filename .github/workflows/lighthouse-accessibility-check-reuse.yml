@@ -56,24 +56,154 @@ jobs:
           name: lighthouse-results-${{ strategy.job-index }}
           path: ${{ github.workspace }}/artifacts
 
-  # generate-summary:
-  #   needs: lighthouse
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Download Batch Results
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: urls_batches
+  collect-results:
+    needs: lighthouse
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ github.workspace }}/combined-artifacts
 
-  #     - name: Generate Lighthouse Summary
-  #       run: |
-  #         SUMMARY_FILE="${{ github.workspace }}/tmp/artifacts/lighthouse-summary.html"
-  #         mkdir -p $(dirname "$SUMMARY_FILE")
+      - name: Combine Lighthouse Results
+        run: |
+          mkdir -p ${{ github.workspace }}/final-artifacts
+          RESULTS_FILE="${{ github.workspace }}/final-artifacts/final-results.json"
+          SUMMARY_FILE="${{ github.workspace }}/final-artifacts/summary.html"
 
-  #         echo "<html><head><title>Lighthouse Summary</title></head><body><h1>Audit Summary</h1><table><tr><th>URL</th><th>Performance</th><th>Accessibility</th><th>Best Practices</th><th>SEO</th><th>Report</th></tr>" > $SUMMARY_FILE
+          # Initialize results file
+          echo "[]" > $RESULTS_FILE
 
-  #         for FILE in ${{ github.workspace }}/tmp/artifacts/results-*.json; do
-  #           jq -r '.[] | "<tr><td>\(.url)</td><td>\(.scores.performance)</td><td>\(.scores.accessibility)</td><td>\(.scores.bestPractices)</td><td>\(.scores.seo)</td><td><a href=\(.localReport)>Report</a></td></tr>"' "$FILE" >> $SUMMARY_FILE
-  #         done
+          # Combine all results.json files
+          for result in ${{ github.workspace }}/combined-artifacts/**/results-*.json; do
+            jq -s '.[0] + .[1]' $RESULTS_FILE $result > tmp.json && mv tmp.json $RESULTS_FILE
+          done
 
-  #         echo "</table></body></html>" >> $SUMMARY_FILE
+          # Generate HTML summary
+          echo "<html>
+          <head>
+            <title>Lighthouse Audit Summary</title>
+            <link href=\"https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css\" rel=\"stylesheet\">
+            <script>
+              const rowsPerPage = 10;
+              let currentPage = 1;
+
+              function paginateTable() {
+                const table = document.getElementById('auditTable');
+                const rows = Array.from(table.querySelectorAll('tbody tr'));
+                const totalRows = rows.length;
+                const totalPages = Math.ceil(totalRows / rowsPerPage);
+
+                // Hide all rows
+                rows.forEach((row, index) => {
+                  row.style.display = index >= (currentPage - 1) * rowsPerPage && index < currentPage * rowsPerPage ? '' : 'none';
+                });
+
+                // Update pagination controls
+                const pagination = document.getElementById('pagination');
+                pagination.innerHTML = '';
+                if (totalPages > 1) {
+                  for (let i = 1; i <= totalPages; i++) {
+                    const isActive = i === currentPage ? 'active' : '';
+                    pagination.innerHTML += '<li class=\"page-item ' + isActive + '\">' +
+                      '<a class=\"page-link\" href=\"#\" onclick=\"goToPage(' + i + '); return false;\">' + i + '</a>' +
+                      '</li>';
+                  }
+                } else {
+                  pagination.style.display = 'none';
+                }
+              }
+
+              function goToPage(page) {
+                currentPage = page;
+                paginateTable();
+              }
+
+              function sortTable(columnIndex) {
+                const table = document.getElementById('auditTable');
+                const rows = Array.from(table.querySelectorAll('tbody tr'));
+                const isAscending = table.dataset.sortOrder === 'asc';
+
+                rows.sort((a, b) => {
+                  const cellA = a.cells[columnIndex].innerText;
+                  const cellB = b.cells[columnIndex].innerText;
+                  return isAscending
+                    ? cellA.localeCompare(cellB, undefined, { numeric: true })
+                    : cellB.localeCompare(cellA, undefined, { numeric: true });
+                });
+
+                table.dataset.sortOrder = isAscending ? 'desc' : 'asc';
+                rows.forEach(row => table.querySelector('tbody').appendChild(row));
+                
+                // Update arrows
+                document.querySelectorAll('th i').forEach(icon => icon.classList.remove('bi-caret-up-fill', 'bi-caret-down-fill'));
+                const arrow = isAscending ? 'bi-caret-up-fill' : 'bi-caret-down-fill';
+                document.querySelector('th[data-column=\"' + columnIndex + '\"] i').classList.add(arrow);
+
+                // Reapply pagination after sorting
+                paginateTable();
+              }
+
+              document.addEventListener('DOMContentLoaded', () => paginateTable());
+            </script>
+            <style>
+              th { cursor: pointer; text-align: center; vertical-align: middle; }
+              th:not([data-sortable=\"false\"]):hover { background-color: #f8f9fa; }
+              tr:hover { background-color: #f1f1f1; }
+              td, th { vertical-align: middle; }
+              .pagination { justify-content: center; margin-top: 1rem; }
+              .table-hover tbody tr:hover td { background-color: #e9ecef; }
+              .numeric { text-align: center; }
+            </style>
+          </head>
+          <body>
+            <div class=\"container mt-4\">
+              <h1 class=\"text-center\">Marketplace Website Audit Summary</h1>
+              <p class=\"text-center\">Click on column headers to sort. Navigate through pages using the pagination controls below.</p>
+              <br/>
+              <table class=\"table table-hover border rounded\" id=\"auditTable\" data-sort-order=\"asc\">
+                <thead class=\"table-light\">
+                  <tr>
+                    <th onclick=\"sortTable(0)\" data-column=\"0\">URL <i class=\"bi\"></i></th>
+                    <th onclick=\"sortTable(1)\" data-column=\"1\" class=\"numeric\">Performance <i class=\"bi\"></i></th>
+                    <th onclick=\"sortTable(2)\" data-column=\"2\" class=\"numeric\">Accessibility <i class=\"bi\"></i></th>
+                    <th onclick=\"sortTable(3)\" data-column=\"3\" class=\"numeric\">Best Practices <i class=\"bi\"></i></th>
+                    <th onclick=\"sortTable(4)\" class=\"numeric\">SEO <i class=\"bi\"></i></th>
+                    <th data-sortable=\"false\">Report</th>
+                  </tr>
+                </thead>
+                <tbody>
+          " > $SUMMARY_FILE
+
+          # Read and parse the JSON file, sorting URLs alphabetically
+          jq -r '.[] | "\(.url),\(.scores.performance),\(.scores.accessibility),\(.scores.bestPractices),\(.scores.seo),\(.localReport)"' $RESULTS_FILE | sort -t, -k1,1 | while IFS=, read -r url performance accessibility bestPractices seo localReport; do
+            reportFile=$(basename "$localReport")
+
+            echo "<tr>
+              <td><a href=\"$url\" class=\"text-decoration-none\">$url</a></td>
+              <td class=\"numeric\">$performance</td>
+              <td class=\"numeric\">$accessibility</td>
+              <td class=\"numeric\">$bestPractices</td>
+              <td class=\"numeric\">$seo</td>
+              <td class=\"numeric\"><a href=\"$reportFile\">View Report</a></td>
+            </tr>" >> $SUMMARY_FILE
+          done
+
+          echo "</tbody>
+              </table>
+              <nav aria-label=\"Page navigation\">
+                <ul class=\"pagination\" id=\"pagination\"></ul>
+              </nav>
+            </div>
+            <script src=\"https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js\"></script>
+            <script src=\"https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.js\"></script>
+          </body>
+          </html>" >> $SUMMARY_FILE
+
+          echo "Summary HTML generated at $SUMMARY_FILE"
+
+      - name: Upload Final Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: final-lighthouse-results
+          path: ${{ github.workspace }}/final-artifacts
