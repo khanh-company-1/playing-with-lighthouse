@@ -28,9 +28,9 @@ jobs:
               echo "No more products found. Stopping."
               break
             fi
-            JSON_ARRAY=$(echo "$PRODUCTS" | jq -R -s -c 'split("\n") | map(select(. != ""))')
+            JSON_ARRAY=$(echo "$PRODUCTS" | jq -R -s -c --arg base_url "$BASE_URL" 'split("\n") | map(select(. != "")) | map("\($base_url)/\(.)") | join(",")')
             echo "JSON_ARRAY: $JSON_ARRAY"
-            BATCH_URLS=$(echo "$PRODUCTS" | jq -r --arg base_url "$BASE_URL" 'map("\($base_url)/\(.)") | join(",")')
+            BATCH_URLS=$(echo "$PRODUCTS" | jq -R -s -c --arg base_url "$BASE_URL" 'split("\n") | map(select(. != "")) | map("\($base_url)/\(.)") | join(",")')
             echo "Fetched batch for page $BATCH_URLS"
             URLS_BATCHES=$(echo "$URLS_BATCHES" | jq --arg batch "$BATCH_URLS" '. + [$batch]')
 
