@@ -22,8 +22,8 @@ jobs:
 
           while true; do
             RESPONSE=$(curl -s "$API_URL&size=$BATCH_SIZE&page=$PAGE&sort=alphabetically")
-            echo "Response: $RESPONSE"
-            PRODUCTS=$(echo "$RESPONSE" | jq -r '.["_embedded"]["products"][]["id"] // empty')
+            echo "$RESPONSE" | jq -r '._embedded.products[].id'
+            PRODUCTS=$(echo "$RESPONSE" | jq -r '._embedded.products[].id')
 
             if [ -z "$PRODUCTS" ]; then
               echo "No more products found. Stopping."
