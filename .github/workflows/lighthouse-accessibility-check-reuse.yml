@@ -6,7 +6,7 @@ on:
 env:
   API_URL: "https://market.axonivy.com/marketplace-service/api/product?type=all&language=en&isRESTClient=false"
   BASE_URL: "https://market.axonivy.com"
-  BATCH_SIZE: 5
+  BATCH_SIZE: 8
 
 jobs:
   fetch-urls:
@@ -70,12 +70,12 @@ jobs:
           mkdir -p ${{ github.workspace }}/final-artifacts
           RESULTS_FILE="${{ github.workspace }}/final-artifacts/final-results.json"
           SUMMARY_FILE="${{ github.workspace }}/final-artifacts/summary.html"
-          ls ${{ github.workspace }}/combined-artifacts -l
+          ls ${{ github.workspace }}/combined-artifacts/lighthouse-results-0 -l
           # Initialize results file
           echo "[]" > $RESULTS_FILE
 
           # Combine all results.json files
-          for result in ${{ github.workspace }}/combined-artifacts/**/results-*.json; do
+          for result in ${{ github.workspace }}/combined-artifacts/**/results.json; do
             jq -s '.[0] + .[1]' $RESULTS_FILE $result > tmp.json && mv tmp.json $RESULTS_FILE
           done
 
