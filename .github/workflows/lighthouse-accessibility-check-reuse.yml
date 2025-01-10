@@ -29,7 +29,7 @@ jobs:
               break
             fi
             BATCH_URLS=$(echo "$PRODUCTS" | jq -R -s -c --arg base_url "$BASE_URL" 'split("\n") | map(select(. != "")) | map("\($base_url)/\(.)") | join(",")')
-            URLS_BATCHES=$(echo "$URLS_BATCHES" | jq --arg batch "$BATCH_URLS" '. + [$batch]')
+            URLS_BATCHES=$(echo "$URLS_BATCHES" | jq --arg batch $BATCH_URLS '. + [$batch]')
             PAGE=$((PAGE + 1))
           done
           echo "$URLS_BATCHES"
