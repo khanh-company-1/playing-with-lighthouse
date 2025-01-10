@@ -79,6 +79,9 @@ jobs:
             jq -s '.[0] + .[1]' $RESULTS_FILE $result > tmp.json && mv tmp.json $RESULTS_FILE
           done
 
+          # Copy all report-*.html files to final-artifacts
+          cp ${{ github.workspace }}/combined-artifacts/**/report-*.html ${{ github.workspace }}/final-artifacts/
+
           # Generate HTML summary
           echo "<html>
           <head>
