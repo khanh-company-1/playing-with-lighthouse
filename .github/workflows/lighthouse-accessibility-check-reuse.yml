@@ -18,11 +18,11 @@ jobs:
         id: collect-urls
         run: |
           PAGE=0
-          URLS_BATCHES="[$BASE_URL]"
+          URLS_BATCHES="[]"
 
           while true; do
             RESPONSE=$(curl -s "$API_URL&size=$BATCH_SIZE&page=$PAGE&sort=alphabetically")
-            PRODUCTS=$(echo "$RESPONSE" | jq -r '._embedded.products[].id // empty')
+            PRODUCTS=$(echo "$RESPONSE" | jq -r '._embedded.products[].id // empty', "")
 
             if [ -z "$PRODUCTS" ]; then
               echo "No more products found. Stopping."
