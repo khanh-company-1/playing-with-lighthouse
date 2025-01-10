@@ -7,6 +7,8 @@ env:
   API_URL: "https://market.axonivy.com/marketplace-service/api/product?type=all&language=en&isRESTClient=false"
   BASE_URL: "https://market.axonivy.com"
   BATCH_SIZE: 10
+  ACTIONS_STEP_DEBUG: true
+  ACTIONS_RUNNER_DEBUG: true
 
 jobs:
   fetch-urls:
