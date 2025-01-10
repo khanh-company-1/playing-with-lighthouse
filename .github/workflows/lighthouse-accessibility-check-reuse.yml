@@ -28,12 +28,17 @@ jobs:
               echo "No more products found. Stopping."
               break
             fi
+            # Join the product URLs into a single comma-separated string
             BATCH_URLS=$(echo "$PRODUCTS" | jq -R -s -c --arg base_url "$BASE_URL" 'split("\n") | map(select(. != "")) | map("\($base_url)/\(.)") | join(",")')
             echo "Batch $PAGE: $BATCH_URLS"
+            # Append the batch (as a string) to the URLS_BATCHES array
             URLS_BATCHES=$(echo "$URLS_BATCHES" | jq --arg batch "$BATCH_URLS" '. + [$batch]')
             PAGE=$((PAGE + 1))
           done
-          echo "$URLS_BATCHES"
+          # Convert the URLS_BATCHES array to a proper JSON array and remove escaped quotes
+          CLEAN_URLS_BATCHES=$(echo "$URLS_BATCHES" | jq -r 'map(fromjson)')
+
+          echo "$CLEAN_URLS_BATCHES"
           echo "urls_batches=$URLS_BATCHES" >> "$GITHUB_OUTPUT"
 
       - name: Output URLs Batches
