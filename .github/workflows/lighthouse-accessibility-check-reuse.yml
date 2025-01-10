@@ -70,7 +70,7 @@ jobs:
           mkdir -p ${{ github.workspace }}/final-artifacts
           RESULTS_FILE="${{ github.workspace }}/final-artifacts/final-results.json"
           SUMMARY_FILE="${{ github.workspace }}/final-artifacts/summary.html"
-
+          ls ${{ github.workspace }}/combined-artifacts -l
           # Initialize results file
           echo "[]" > $RESULTS_FILE
 
