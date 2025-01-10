@@ -33,21 +33,15 @@ jobs:
             URLS_BATCHES=$(echo "$URLS_BATCHES" | jq --arg batch "$BATCH_URLS" '. + [$batch]')
             PAGE=$((PAGE + 1))
           done
-          # Convert the URLS_BATCHES array to a proper JSON array and remove escaped quotes
-          CLEAN_URLS_BATCHES=$(echo "$URLS_BATCHES" | jq -c 'map(fromjson)')
-
-          echo "$CLEAN_URLS_BATCHES"
-
-          # Save the cleaned URL batches to the GITHUB_OUTPUT
-          echo "urls_batches=$CLEAN_URLS_BATCHES" >> "$GITHUB_OUTPUT"
-
-      - name: Output URLs Batches
-        run: |
-          echo "Batches: ${{ steps.collect-urls.outputs.urls_batches }}"
+          URLS_BATCHES=$(echo "$URLS_BATCHES" | jq -c 'map(fromjson)')
+          echo "urls_batches=$URLS_BATCHES" >> "$GITHUB_OUTPUT"
 
   lighthouse:
     needs: fetch-urls
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        batch: ${{ fromJson(needs.fetch-urls.outputs.urls_batches) }}
     steps:
       - run: |
-          echo "Batch URLs: ${{ fromJson(needs.fetch-urls.outputs.urls_batches) }}"
+          echo "Batch URLs: ${{ matrix.batch }}"
