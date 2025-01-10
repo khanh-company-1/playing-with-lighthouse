@@ -7,36 +7,40 @@ env:
   API_URL: "https://market.axonivy.com/marketplace-service/api/product?type=all&language=en&isRESTClient=false"
   BASE_URL: "https://market.axonivy.com"
   BATCH_SIZE: 10
-  ACTIONS_STEP_DEBUG: true
-  ACTIONS_RUNNER_DEBUG: true
 
 jobs:
   fetch-urls:
     runs-on: ubuntu-latest
     outputs:
-      urls_batches: ${{ steps.process-urls.outputs.batches }}
+      urls_batches: ${{ steps.collect-urls.outputs.urls_batches }}
     steps:
       - name: Fetch Product IDs in Batches
+        id: collect-urls
         run: |
-          RESPONSE=$(curl -s "$API_URL&size=1000")
-          TOTAL_PRODUCTS=$(echo "$RESPONSE" | jq -r '.page.totalElements')
+          PAGE=0
+          URLS_BATCHES="[]"
 
-          echo "Total Products: $TOTAL_PRODUCTS"
+          while true; do
+            RESPONSE=$(curl -s "$API_URL&size=$BATCH_SIZE&page=$PAGE&sort=alphabetically")
+            PRODUCTS=$(echo "$RESPONSE" | jq -r '.["_embedded"]["products"][]["id"] // empty')
 
-          # Clear the file before starting
-          > urls_batches.txt
-          for ((i=0; i<TOTAL_PRODUCTS; i+=$BATCH_SIZE)); do
-            RESPONSE=$(curl -s "$API_URL&size=$BATCH_SIZE&page=$((i/$BATCH_SIZE))")
-            BATCH_URLS=$(echo "$RESPONSE" | jq -r --arg base_url "$BASE_URL" '.["_embedded"]["products"][]["id"] | "\($base_url)/\(.)"' | paste -sd",")
-            echo "$BATCH_URLS" >> urls_batches.txt
+            if [ -z "$PRODUCTS" ]; then
+              echo "No more products found. Stopping."
+              break
+            fi
+
+            BATCH_URLS=$(echo "$PRODUCTS" | jq -r --arg base_url "$BASE_URL" 'map("\($base_url)/\(.)") | join(",")')
+            URLS_BATCHES=$(echo "$URLS_BATCHES" | jq --arg batch "$BATCH_URLS" '. + [$batch]')
+
+            echo "Fetched batch for page $PAGE"
+            PAGE=$((PAGE + 1))
           done
 
-      - name: Process URL Batches
-        id: process-urls
+          echo "urls_batches=$URLS_BATCHES" >> "$GITHUB_OUTPUT"
+
+      - name: Output URLs Batches
         run: |
-          URLs=$(cat urls_batches.txt | jq -R -s -c 'split("\n") | map(select(. != ""))')
-          echo "URLs: $URLs"
-          echo "batches=${URLs}" >> "$GITHUB_OUTPUT"
+          echo "Batches: ${{ steps.collect-urls.outputs.urls_batches }}"
 
   lighthouse:
     needs: fetch-urls
