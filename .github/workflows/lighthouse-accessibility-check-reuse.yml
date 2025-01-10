@@ -41,9 +41,6 @@ jobs:
   lighthouse:
     needs: fetch-urls
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        batch: ${{ fromJson(needs.fetch-urls.outputs.urls_batches) }}
     steps:
       - run: |
-          echo "Batch URLs: ${{ matrix.batch }}"
+          echo "Batch URLs: ${{ needs.fetch-urls.outputs.urls_batches }}"
