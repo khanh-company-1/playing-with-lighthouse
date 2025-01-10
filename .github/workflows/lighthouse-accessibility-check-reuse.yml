@@ -22,7 +22,7 @@ jobs:
 
           while true; do
             RESPONSE=$(curl -s "$API_URL&size=$BATCH_SIZE&page=$PAGE&sort=alphabetically")
-            PRODUCTS=$(echo "$RESPONSE" | jq -r '._embedded.products[].id // empty', "")
+            PRODUCTS=$(echo "$RESPONSE" | jq -r '._embedded.products[].id // empty')
 
             if [ -z "$PRODUCTS" ]; then
               echo "No more products found. Stopping."
@@ -34,6 +34,7 @@ jobs:
             PAGE=$((PAGE + 1))
           done
           URLS_BATCHES=$(echo "$URLS_BATCHES" | jq -c 'map(fromjson)')
+          URLS_BATCHES=$(echo "$URLS_BATCHES" | jq --arg base_url "$BASE_URL" '. + [$base_url]')
           echo "urls_batches=$URLS_BATCHES" >> "$GITHUB_OUTPUT"
 
   lighthouse:
