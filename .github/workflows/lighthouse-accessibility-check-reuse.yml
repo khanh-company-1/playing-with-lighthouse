@@ -70,7 +70,7 @@ jobs:
       - name: Combine Lighthouse Results
         run: |
           mkdir -p ${{ github.workspace }}/final-artifacts
-          RESULTS_FILE="${{ github.workspace }}/final-artifacts/final-results.json"
+          RESULTS_FILE="${{ github.workspace }}/final-artifacts/lighthouse/results.json"
           SUMMARY_FILE="${{ github.workspace }}/final-artifacts/summary.html"
           ls ${{ github.workspace }}/combined-artifacts/lighthouse-results-0 -l
           # Initialize results file
@@ -82,7 +82,7 @@ jobs:
           done
 
           # Copy all report-*.html files to final-artifacts
-          cp ${{ github.workspace }}/combined-artifacts/**/report-*.html ${{ github.workspace }}/final-artifacts/
+          cp ${{ github.workspace }}/combined-artifacts/**/report-*.html ${{ github.workspace }}/final-artifacts/lighthouse/
 
           # Generate HTML summary
           echo "<html>
@@ -206,8 +206,14 @@ jobs:
 
           echo "Summary HTML generated at $SUMMARY_FILE"
 
+      - name: Delete Old Artifacts
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: lighthouse-results-*
+          failOnError: false
+
       - name: Upload Final Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: final-lighthouse-results
+          name: lighthouse-results
           path: ${{ github.workspace }}/final-artifacts
