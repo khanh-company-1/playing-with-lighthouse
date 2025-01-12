@@ -181,9 +181,7 @@ jobs:
 
           # Read and parse the JSON file, sorting URLs alphabetically
           jq -r '.[] | "\(.url),\(.scores.performance),\(.scores.accessibility),\(.scores.bestPractices),\(.scores.seo),\(.localReport)"' $RESULTS_FILE | sort -t, -k1,1 | while IFS=, read -r url performance accessibility bestPractices seo localReport; do
-            echo "Processing $localReport"
-            reportFile=$(basename "$localReport")
-
+            reportFile="lighthouse/$(basename "$localReport")"
             echo "<tr>
               <td><a href=\"$url\" class=\"text-decoration-none\">$url</a></td>
               <td class=\"numeric\">$performance</td>
