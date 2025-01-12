@@ -69,7 +69,7 @@ jobs:
 
       - name: Combine Lighthouse Results
         run: |
-          mkdir -p ${{ github.workspace }}/final-artifacts
+          mkdir -p ${{ github.workspace }}/final-artifacts/lighthouse
           RESULTS_FILE="${{ github.workspace }}/final-artifacts/lighthouse/results.json"
           SUMMARY_FILE="${{ github.workspace }}/final-artifacts/summary.html"
           ls ${{ github.workspace }}/combined-artifacts/lighthouse-results-0 -l
