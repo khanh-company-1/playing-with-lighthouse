@@ -19,7 +19,7 @@ jobs:
         run: |
           PAGE=0
           URLS_BATCHES="[]"
-          URLS_BATCHES=$(echo "$URLS_BATCHES" | jq --arg base_url "$BASE_URL" '. + [$base_url]')
+          URLS_BATCHES=$(echo "$URLS_BATCHES" | jq --arg base_url "$BASE_URL" '. + [("\"" + $base_url + "\"")]')
 
           while true; do
             RESPONSE=$(curl -s "$API_URL&size=$BATCH_SIZE&page=$PAGE&sort=alphabetically")
